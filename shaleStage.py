@@ -18,7 +18,7 @@ emsianT = [407.6,393.3,0,0,0,'Emsian',0]
 pragianT = [410.8,407.6,0,0,0,'Pragian',0]
 lochkovianT = [419.2,410.8,0,0,0,'Lochkovian',0]
 
-# constants indexes for stage data
+# constants for stage data indices
 B_AGE = 0
 T_AGE = 1
 TOTAL_AREA = 2
@@ -27,8 +27,8 @@ FOSSIL_AREA = 4
 STAGE_NAME = 5
 TOTAL_LOCALITIES = 6
 
-# list of stages/ times. to use:
-# [controls index of stageTime] [controls index of strt/end]
+# list of stages/ times, to use:
+# [controls index of which stage] [controls index of stageData]
 stageTimes = [lochkovianT, pragianT, emsianT, eifelianT, givetianT, frasnianT, fammenianT]
 
 for period in periods:
@@ -36,21 +36,37 @@ for period in periods:
         reader = csv.DictReader(csvfile)
         
         for row in reader:
+
+            # retrieve some csv Data
             localArea = float(row['col_area'])
             b_age = float(row['b_age'])
             t_age = float(row['t_age'])
-            for stage in stageTimes:
-                if (b_age > stage[B_AGE] and t_age < stage[B_AGE]) or (b_age < stage[B_AGE] and b_age > stage[T_AGE]) or (t_age < stage[B_AGE] and t_age > stage[T_AGE]) :
-                #if b_age < stage[B_AGE] and t_age > stage[T_AGE]:
-                    if int(row['pbdb_collections']) > 0:
-                        stage[FOSSIL_AREA] += localArea
-                     
-                    if "shale" in str(row['lith']):
-                        stage[SHALE_AREA] += localArea
-                    stage[TOTAL_AREA] += localArea
-                    stage[TOTAL_LOCALITIES] += 1
-        
-    # Calculate Percent Shale
+
+            # remove long range localities
+            if (b_age - t_age) < 25:
+
+                # perform for each stage
+                for stage in stageTimes:
+
+                    # start, ends, or passes through stage?
+                    if ((b_age > stage[B_AGE] and t_age < stage[B_AGE]) or
+                        (b_age < stage[B_AGE] and b_age > stage[T_AGE]) or
+                        (t_age < stage[B_AGE] and t_age > stage[T_AGE])):
+                    #if b_age < stage[B_AGE] and t_age > stage[T_AGE]:
+
+                        # fosiliferous?
+                        if int(row['pbdb_collections']) > 0:
+                            stage[FOSSIL_AREA] += localArea
+
+                        # shale present?    
+                        if "shale" in str(row['lith']):
+                            stage[SHALE_AREA] += localArea
+
+                        # add area and locality
+                        stage[TOTAL_AREA] += localArea
+                        stage[TOTAL_LOCALITIES] += 1
+
+    # loop through various stages for data printing
     for stage in stageTimes:
         
         # Print Data
@@ -69,6 +85,5 @@ for period in periods:
             print( "Exposed Percent Shale: " + str(percentShale))
         print("-------------------------------------------------------")
 
-    #index += 1
 
 
