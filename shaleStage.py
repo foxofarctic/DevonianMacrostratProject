@@ -27,6 +27,10 @@ FOSSIL_AREA = 4
 STAGE_NAME = 5
 TOTAL_LOCALITIES = 6
 
+#constants for rockType
+ROCK = 0
+THICKNESS = 1
+
 # list of stages/ times, to use:
 # [controls index of which stage] [controls index of stageData]
 stageTimes = [lochkovianT, pragianT, emsianT, eifelianT, givetianT, frasnianT, fammenianT]
@@ -42,9 +46,23 @@ for period in periods:
             b_age = float(row['b_age'])
             t_age = float(row['t_age'])
 
-            # remove long range localities
+            # lithology rock type/ proportional thickness array
+            rockTypes = []
+            
+            # remove long range localities - set to <25 mya
             if (b_age - t_age) < 25:
 
+                # parse through lith for rock type/ proportional thickness data
+                lithString = str(row['lith'])
+                while '|' in lithString:
+                    lithSub = lithString[0:lithString.find('|')]
+                    rockTypes.append([lithSub[0:lithSub.find('~')-2],
+                                      float(lithSub[lithSub.find('~')+2 : len(lithSub)])])
+                    lithString = lithString[lithString.find('|')+1:len(lithString)]
+
+                rockTypes.append([lithString[0:lithString.find('~')-2],
+                                  float(lithString[lithString.find('~')+2 : len(lithString)])])
+                    
                 # perform for each stage
                 for stage in stageTimes:
 
@@ -58,13 +76,19 @@ for period in periods:
                         if int(row['pbdb_collections']) > 0:
                             stage[FOSSIL_AREA] += localArea
 
-                        # shale present?    
-                        if "shale" in str(row['lith']):
-                            stage[SHALE_AREA] += localArea
+                        # shale present and rock thickness - thickness set to 0.80
+                        for rock in rockTypes:
+                            
+                            if ('shale siliciclastic' in rock[ROCK]
+                                and rock[THICKNESS] > 0.80):
+                                stage[SHALE_AREA] += localArea
 
                         # add area and locality
                         stage[TOTAL_AREA] += localArea
                         stage[TOTAL_LOCALITIES] += 1
+
+    shaleAreaArr = []
+    stageB_ageArr = []
 
     # loop through various stages for data printing
     for stage in stageTimes:
@@ -77,13 +101,28 @@ for period in periods:
         print("Shale Area: " + str(stage[SHALE_AREA]))
         print("Fossiliferous Area: " + str(stage[FOSSIL_AREA]))
 
+        
+       
+        
         # Calculate Percent Shale
         if stage[TOTAL_AREA] != 0:
             percentShale = (stage[SHALE_AREA]/stage[TOTAL_AREA]) * 100.0
             percentFossil = (stage[FOSSIL_AREA]/stage[TOTAL_AREA]) * 100.0
+
+            # arrays for scatter plot
+            shaleAreaArr.append(percentShale)
+            stageB_ageArr.append(stage[STAGE_NAME])
+
             print( "Exposed Percent Fossiliferous Area: " + str(percentFossil))
             print( "Exposed Percent Shale: " + str(percentShale))
         print("-------------------------------------------------------")
+
+# plot of data
+plt.plot(stageB_ageArr, shaleAreaArr, 'o-')
+plt.ylabel('Percent Shale')
+plt.xlabel('Stage')
+plt.title('Percent Shale through Devonian')
+plt.show()
 
 
 
