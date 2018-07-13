@@ -1,0 +1,9 @@
+import urllib.request, json
+from io import StringIO
+
+url = 'http://paleobiodb.org/data1.2/taxa/single.json?name=Dascillidae&show=attr'
+response = urllib.request.urlopen(url)
+print (response.read())
+
+#data = json.load(response.read())
+#print(str(data))
