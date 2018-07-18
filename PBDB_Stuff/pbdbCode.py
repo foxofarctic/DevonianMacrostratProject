@@ -62,10 +62,10 @@ def subList(list1,list2):
 # ------------------------------------------------------------------------
 
 # API link for data from pbdb in JSON format
-url = 'https://paleobiodb.org/data1.2/occs/list.json?interval=gorstian,famennian&time_rule=overlap&show=genus,timebins'
+url = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Gorstian,Visean&time_rule=overlap'
 
-# smaller test dataset- only lochkovian
-url2 = 'https://paleobiodb.org/data1.2/occs/list.json?interval=lochkovian,lochkovian&time_rule=overlap&show=genus,timebins'
+# smaller test dataset- only famennian
+url2 = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Famennian,Famennian&time_rule=overlap'
 
 # receive data from api - change url for desired dataset
 response = requests.get(url)

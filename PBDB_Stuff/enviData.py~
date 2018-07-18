@@ -1,0 +1,5 @@
+# Lucas Estrada (c) 2018
+# interpret PBDB data for paleoenvironment
+
+import requests, json
+import matplotlib.pyplot as plt
