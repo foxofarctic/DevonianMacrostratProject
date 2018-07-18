@@ -1,46 +1,76 @@
+# Lucas Estrada (c) 2018
+# interpret PBDB data for origination and extinction
+
 import requests, json
 import matplotlib.pyplot as plt
 
-NAMES = ['Lochkovian','Pragian','Emsian','Eifelian','Givetian','Frasnian','Famennian','Non Devonian']
-LOCHKOVIAN = 0
-PRAGIAN = 1
-EMSIAN = 2
-EIFELIAN = 3
-GIVETIAN = 4
-FRASNIAN = 5
-FAMENNIAN = 6
-NONDEVONIAN = 7
+# constants for stages
+NAMES = ['Gorstian','Ludfordian','Pridoli','Lochkovian','Pragian','Emsian','Eifelian','Givetian','Frasnian','Famennian','Tournaisian','Visean','Other']
+GORSTIAN = 0
+LUDFORDIAN = 1
+PRIDOLI = 2
+LOCHKOVIAN = 3
+PRAGIAN = 4
+EMSIAN = 5
+EIFELIAN = 6
+GIVETIAN = 7
+FRASNIAN = 8
+FAMENNIAN = 9
+TOURNAISIAN = 10
+VISEAN = 11
+OTHER = 12
 
 # checks which stage the inputted time is in
-def stageSort(lag):
-    
-    if lag >= 359.0 and lag <= 372.0:
+def stageSort(age):
+    if age >= 331.0 and age <= 347.0:
+        return VISEAN
+    elif age >= 347.0 and age <= 359.0:
+        return TOURNAISIAN
+    elif age >= 359.0 and age <= 372.0:
         return FAMENNIAN
-    elif lag >= 372.0 and lag <= 383.0:
+    elif age >= 372.0 and age <= 383.0:
         return FRASNIAN
-    elif lag >= 383.0 and lag <= 388.0:
+    elif age >= 383.0 and age <= 388.0:
         return GIVETIAN
-    elif lag >= 388.0 and lag <= 393.0:
+    elif age >= 388.0 and age <= 393.0:
         return EIFELIAN
-    elif lag >= 393.0 and lag <= 408.0:
+    elif age >= 393.0 and age <= 408.0:
         return EMSIAN
-    elif lag >= 408.0 and lag <= 411.0:
+    elif age >= 408.0 and age <= 411.0:
         return PRAGIAN
-    elif lag >= 411.0 and lag <= 419.0:
+    elif age >= 411.0 and age <= 419.0:
         return LOCHKOVIAN
+    elif age >= 419.0 and age <= 423.0:
+        return PRIDOLI
+    elif age >= 423.0 and age <= 426.0:
+        return LUDFORDIAN
+    elif age >= 426.0 and age <= 427.0:
+        return GORSTIAN
     else:
-        return NONDEVONIAN
+        return OTHER
 
+# subtract elements in list2 from list1 for same length lists
+def subList(list1,list2):
+    result = []
+    i = 0
+    for item in list1:
+        result.append(item - list2[i])
+        i += 1
+    return result
 
 # main method
-# API link for data from pbdb in JSON format
-url = 'https://paleobiodb.org/data1.2/occs/list.json?interval=lochkovian,famennian&time_rule=overlap&show=genus,timebins'
+# ------------------------------------------------------------------------
 
+# API link for data from pbdb in JSON format
+url = 'https://paleobiodb.org/data1.2/occs/list.json?interval=gorstian,famennian&time_rule=overlap&show=genus,timebins'
+
+# smaller test dataset- only lochkovian
 url2 = 'https://paleobiodb.org/data1.2/occs/list.json?interval=lochkovian,lochkovian&time_rule=overlap&show=genus,timebins'
 
-# receive data from api
-response = requests.get(url2)
+# receive data from api - change url for desired dataset
+response = requests.get(url)
 
+# checks for invalid url response
 if str(response) != '<Response [200]>' :
     print("invalid url: " + str(response))
 else:
@@ -51,34 +81,38 @@ else:
     # get list of records dicts
     records = data['records']
 
-    eag_stageCount = [0,0,0,0,0,0,0,0]
-    lag_stageCount = [0,0,0,0,0,0,0,0]
-    eagOverLag = [0,0,0,0,0,0,0,0]
+    # counts origination/ extinction for each stage
+    eag_stageCount = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+    lag_stageCount = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+    # find suitable origination/extinction stage for each record
     for record in records:
         eag_stageCount[stageSort(record['eag'])] += 1
         lag_stageCount[stageSort(record['lag'])] += 1
-    
+
+        
+    # data interpretation
+# -------------------------------------------------------------------------
     print("origination count: " + str(eag_stageCount))
     print("extinction count: " + str(lag_stageCount))
     print("total: " + str(len(records)))
+    print("resulting list: " +str(subList(eag_stageCount,lag_stageCount)))
 
-    
+    # create origination/extinction graph
     plt.figure(figsize=(20,10))
     plt.subplot(2,1,1)
-    plt.bar(NAMES, eag_stageCount, align='center', alpha=0.5)
-    plt.ylabel('Total Origination')
-    plt.title('Origination Through the Devonian')
+    origination = plt.plot(NAMES, eag_stageCount, marker= 'o',
+                           label='origination')
+    extinction = plt.plot(NAMES, lag_stageCount, marker= 'o',
+                          label ='extinction')
+    plt.ylabel('genera extinct/ originating')
+    plt.title('Origination and Extinction Through the Devonian')
+    plt.legend()
 
+    # create net diversity change graph
     plt.subplot(2,1,2)
-    plt.title('Extinction through the Devonian')
-    plt.bar(NAMES, lag_stageCount, align='center', alpha=0.5)
-    plt.ylabel('Total Extinction')
+    plt.plot(NAMES, subList(eag_stageCount,lag_stageCount), marker= 'o')
+    plt.ylabel('origination - extinction')
+    plt.title('Net Diversity Change')
 
-    #i = 0
-    #for stg in eag_stageCount:
-    #    eagOverLag[i] = float(stg)/float(lag_stageCount[i])
-     #   i+=1
-    #plt.subplot(2,2,2)
-    #plt.title('Origination/Extinction')
-    #plt.bar(NAMES, eagOverLag, align='center', alpha=0.5)
     plt.show()
