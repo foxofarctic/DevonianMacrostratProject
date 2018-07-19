@@ -14,15 +14,35 @@ url2 = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval
 # list of desired datasets
 urls = [(url,'Frasnian-Famennian' ), (url2, 'Eifelian-Givetian')]
 
+def uniqueCounts(recList):
+        envCount = []
+        environs = []
+
+        # loop through each dict in records
+        for record in recList:
+
+                # checks if 'env' is a valid key in dict
+                if 'env' in record:
+
+                        # paleoenvironment
+                        env = record['env']
+
+                        # is env unique
+                        if not env in environs:
+
+                                # add to list of nique environments
+                                environs.append(env)
+
+                                # set count to 1
+                                envCount.append(1)
+                        else:
+                                # otherwise update count 
+                                envCount[environs.index(env)] += 1
+        return (envCount, environs)
+
+
+
 # loops through the listed datasets
-
-
-
-
-
-
-
-
 for site in urls:
         # receive data from api - change url for desired dataset
         response = requests.get(site[0])
@@ -34,15 +54,14 @@ for site in urls:
                 # create dict object with data response
                 data = response.json()
 
-                # list of unique paleoenvironment names
-                environs = []
 
-                # counts of each paleoenvironment - corresponds to  environs
-                envCount = []
+                
                 
                 # get list of records dicts
                 records = data['records']
-
+                
+                envCount = []
+                environs = []
                 # loop through each dict in records
                 for record in records:
 
