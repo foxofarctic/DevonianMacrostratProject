@@ -98,7 +98,6 @@ for period in periods:
     shaleAreaArr = []
     stageB_ageArr = []
     mudstoneAreaArr = []
-    fossilAreaArr = []
     
     # loop through various stages for data printing
     for stage in stageTimes:
@@ -124,22 +123,23 @@ for period in periods:
             shaleAreaArr.append(percentShale)
             stageB_ageArr.append(stage[STAGE_NAME])
             mudstoneAreaArr.append(percentMudstone)
-            fossilAreaArr.append(percentFossil)
             
             print( "Exposed Percent Fossiliferous Area: " + str(percentFossil))
             print( "Exposed Percent Shale: " + str(percentShale))
             print( "Exposed Percent Mudstone: " + str(percentMudstone))
         print("-------------------------------------------------------")
 
-# plot of shale/ mudstone data
-plt.figure(figsize=(15,7))
-plt.plot(stageB_ageArr, shaleAreaArr, 'o-', label= 'Percent Shale')
-plt.ylabel('Percentage')
+# plot of shale data
+plt.plot(stageB_ageArr, shaleAreaArr, 'o-')
+plt.subplot(2,1,1)
+plt.ylabel('Percent Shale')
 plt.xlabel('Stage')
-plt.title('Percent Shale and Mudstone through Devonian')
-plt.plot(stageB_ageArr, mudstoneAreaArr, 'o-', label= 'Percent Mudstone')
-plt.plot(stageB_ageArr, fossilAreaArr, 'o-', label= 'Percent Fossil')
-plt.legend()
+plt.title('Percent Shale through Devonian')
+
+# plot of mudstone data
+plt.subplot(2,1,2)
+plt.plot(stageB_ageArr, mudstoneAreaArr, 'o-')
+plt.title('Percent Mudstone through Devonian')
 
 plt.show()
 
