@@ -4,16 +4,7 @@
 import requests, json
 import matplotlib.pyplot as plt
 
-# API links for data from pbdb in JSON format
-# Frasnian famennian data
-url = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Frasnian,Famennian&time_rule=overlap&show=env'
-
-# Eifelian-Givetian data
-url2 = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Eifelian,Givetian&time_rule=overlap&show=env'
-
-# list of desired datasets
-urls = [(url,'Frasnian-Famennian' ), (url2, 'Eifelian-Givetian')]
-
+# method for finding unique paleoenvironments and counting them
 def uniqueCounts(recList):
         envCount = []
         environs = []
@@ -45,7 +36,18 @@ def uniqueCounts(recList):
         # return
         return (environs, envCount)
 
+# main method
+# -----------------------------------------------------------------------
 
+# API links for data from pbdb in JSON format
+# Frasnian famennian data
+url = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Frasnian,Famennian&time_rule=overlap&show=env'
+
+# Eifelian-Givetian data
+url2 = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Eifelian,Givetian&time_rule=overlap&show=env'
+
+# list of desired datasets
+urls = [(url,'Frasnian-Famennian' ), (url2, 'Eifelian-Givetian')]
 
 # loops through the listed datasets
 for site in urls:
@@ -70,10 +72,12 @@ for site in urls:
 
                 # remove carbonate indeterminate and marine indet.
                 if 'carbonate indet.' in envNames:
-                        paleoCounts.remove(paleoCounts[envNames.index('carbonate indet.')])
+                        paleoCounts.remove(paleoCounts[envNames.index(
+                                'carbonate indet.')])
                         envNames.remove('carbonate indet.')
                 if 'marine indet.' in envNames:
-                        paleoCounts.remove(paleoCounts[envNames.index('marine indet.')])
+                        paleoCounts.remove(paleoCounts[envNames.index(
+                                'marine indet.')])
                         envNames.remove('marine indet.')
                 
 
@@ -84,5 +88,3 @@ for site in urls:
 
 
 plt.show()
-
-                
