@@ -14,15 +14,40 @@ url2 = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval
 # list of desired datasets
 urls = [(url,'Frasnian-Famennian' ), (url2, 'Eifelian-Givetian')]
 
+def uniqueCounts(recList):
+        envCount = []
+        environs = []
+
+        # loop through each dict in records
+        for record in recList:
+
+                # checks if 'env' is a valid key in dict
+                if 'env' in record:
+
+                        # paleoenvironment
+                        env = record['env']
+
+                        # is env unique
+                        if not env in environs:
+
+                                # add to list of nique environments
+                                environs.append(env)
+
+                                # set count to 1
+                                envCount.append(1)
+                        else:
+                                # otherwise update count 
+                                envCount[environs.index(env)] += 1
+        # raw data
+        print (environs)
+        print(envCount)
+
+        # return
+        return (environs, envCount)
+
+
+
 # loops through the listed datasets
-
-
-
-
-
-
-
-
 for site in urls:
         # receive data from api - change url for desired dataset
         response = requests.get(site[0])
@@ -33,53 +58,29 @@ for site in urls:
         else:
                 # create dict object with data response
                 data = response.json()
-
-                # list of unique paleoenvironment names
-                environs = []
-
-                # counts of each paleoenvironment - corresponds to  environs
-                envCount = []
                 
                 # get list of records dicts
                 records = data['records']
 
-                # loop through each dict in records
-                for record in records:
-
-                        # checks if 'env' is a valid key in dict
-                        if 'env' in record:
-
-                                # paleoenvironment
-                                env = record['env']
-
-                                # is env unique
-                                if not env in environs:
-
-                                        # add to list of nique environments
-                                        environs.append(env)
-
-                                        # set count to 1
-                                        envCount.append(1)
-                                else:
-                                        # otherwise update count 
-                                        envCount[environs.index(env)] += 1
-                # raw data printout
-                print(environs)
-                print(envCount)
+                # counts fossis per unique paleoenvironment
+                paleoenvis = uniqueCounts(records)
+                
+                envNames = paleoenvis[0]
+                paleoCounts = paleoenvis[1]
 
                 # remove carbonate indeterminate and marine indet.
-                if 'carbonate indet.' in environs:
-                        envCount.remove(envCount[environs.index('carbonate indet.')])
-                        environs.remove('carbonate indet.')
-                if 'marine indet.' in environs:
-                        envCount.remove(envCount[environs.index('marine indet.')])
-                        environs.remove('marine indet.')
+                if 'carbonate indet.' in envNames:
+                        paleoCounts.remove(paleoCounts[envNames.index('carbonate indet.')])
+                        envNames.remove('carbonate indet.')
+                if 'marine indet.' in envNames:
+                        paleoCounts.remove(paleoCounts[envNames.index('marine indet.')])
+                        envNames.remove('marine indet.')
                 
 
                 # create figures
                 plt.figure(figsize=(20,10))
                 plt.title(site[1])
-                plt.barh(environs, envCount)
+                plt.barh(envNames, paleoCounts)
 
 
 plt.show()
