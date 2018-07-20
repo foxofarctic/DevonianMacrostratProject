@@ -4,8 +4,14 @@
 import requests, json
 import matplotlib.pyplot as plt
 
+# checks if FAD is within expected time boundary
+def inTime(time, boundary):
+        return (time <= boundary[0] and time > boundary[1])
+                
+
+
 # method for finding unique paleoenvironments and counting them
-def uniqueCounts(recList):
+def uniqueCounts(recList, boundary):
         envCount = []
         environs = []
 
@@ -13,7 +19,7 @@ def uniqueCounts(recList):
         for record in recList:
 
                 # checks if 'env' is a valid key in dict
-                if 'env' in record:
+                if ('env' in record) and inTime(record['eag'], boundary):
 
                         # paleoenvironment
                         env = record['env']
@@ -36,6 +42,24 @@ def uniqueCounts(recList):
         # return
         return (environs, envCount)
 
+# environment filter method
+# ------------------------------------------------------------------------
+def filterEnvis(listOlists):
+        # remove carbonate indeterminate and marine indet.
+        envNames = listOlists[0]
+        paleoCounts = listOlists[1]
+        
+        if 'carbonate indet.' in envNames:
+                paleoCounts.remove(paleoCounts[envNames.index(
+                        'carbonate indet.')])
+                envNames.remove('carbonate indet.')
+        if 'marine indet.' in envNames:
+                paleoCounts.remove(paleoCounts[envNames.index(
+                        'marine indet.')])
+                envNames.remove('marine indet.')
+        return (envNames, paleoCounts)
+        
+
 # main method
 # -----------------------------------------------------------------------
 
@@ -47,7 +71,7 @@ url = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=
 url2 = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Eifelian,Givetian&time_rule=overlap&show=env'
 
 # list of desired datasets
-urls = [(url,'Frasnian-Famennian' ), (url2, 'Eifelian-Givetian')]
+urls = [(url,'Frasnian-Famennian', [382.7, 358.9] ), (url2, 'Eifelian-Givetian', [393.3, 382.7])]
 
 # loops through the listed datasets
 for site in urls:
@@ -65,21 +89,11 @@ for site in urls:
                 records = data['records']
 
                 # counts fossis per unique paleoenvironment
-                paleoenvis = uniqueCounts(records)
+                # filter out unhelpful environments
+                paleoenvis = filterEnvis(uniqueCounts(records, site[2]))
                 
                 envNames = paleoenvis[0]
                 paleoCounts = paleoenvis[1]
-
-                # remove carbonate indeterminate and marine indet.
-                if 'carbonate indet.' in envNames:
-                        paleoCounts.remove(paleoCounts[envNames.index(
-                                'carbonate indet.')])
-                        envNames.remove('carbonate indet.')
-                if 'marine indet.' in envNames:
-                        paleoCounts.remove(paleoCounts[envNames.index(
-                                'marine indet.')])
-                        envNames.remove('marine indet.')
-                
 
                 # create figures
                 plt.figure(figsize=(20,10))
