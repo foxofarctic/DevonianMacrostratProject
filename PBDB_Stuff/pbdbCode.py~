@@ -1,0 +1,118 @@
+# Lucas Estrada (c) 2018
+# interpret PBDB data for origination and extinction
+
+import requests, json
+#import matplotlib.pyplot as plt
+
+# constants for stages
+NAMES = ['Gorstian','Ludfordian','Pridoli','Lochkovian','Pragian','Emsian','Eifelian','Givetian','Frasnian','Famennian','Tournaisian','Visean','Other']
+GORSTIAN = 0
+LUDFORDIAN = 1
+PRIDOLI = 2
+LOCHKOVIAN = 3
+PRAGIAN = 4
+EMSIAN = 5
+EIFELIAN = 6
+GIVETIAN = 7
+FRASNIAN = 8
+FAMENNIAN = 9
+TOURNAISIAN = 10
+VISEAN = 11
+OTHER = 12
+
+# checks which stage the inputted time is in
+def stageSort(age):
+    if age >= 331.0 and age <= 347.0:
+        return VISEAN
+    elif age >= 347.0 and age <= 359.0:
+        return TOURNAISIAN
+    elif age >= 359.0 and age <= 372.0:
+        return FAMENNIAN
+    elif age >= 372.0 and age <= 383.0:
+        return FRASNIAN
+    elif age >= 383.0 and age <= 388.0:
+        return GIVETIAN
+    elif age >= 388.0 and age <= 393.0:
+        return EIFELIAN
+    elif age >= 393.0 and age <= 408.0:
+        return EMSIAN
+    elif age >= 408.0 and age <= 411.0:
+        return PRAGIAN
+    elif age >= 411.0 and age <= 419.0:
+        return LOCHKOVIAN
+    elif age >= 419.0 and age <= 423.0:
+        return PRIDOLI
+    elif age >= 423.0 and age <= 426.0:
+        return LUDFORDIAN
+    elif age >= 426.0 and age <= 427.0:
+        return GORSTIAN
+    else:
+        return OTHER
+
+# subtract elements in list2 from list1 for same length lists
+def subList(list1,list2):
+    result = []
+    i = 0
+    for item in list1:
+        result.append(item - list2[i])
+        i += 1
+    return result
+
+# main method
+# ------------------------------------------------------------------------
+
+# API link for data from pbdb in JSON format
+url = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Gorstian,Visean&time_rule=overlap'
+
+# smaller test dataset- only famennian
+url2 = 'https://paleobiodb.org/data1.2/occs/list.json?datainfo&rowcount&interval=Famennian,Famennian&time_rule=overlap'
+
+# receive data from api - change url for desired dataset
+response = requests.get(url)
+
+# checks for invalid url response
+if str(response) != '<Response [200]>' :
+    print("invalid url: " + str(response))
+else:
+
+    # create dict object with data response
+    data = response.json()
+
+    # get list of records dicts
+    records = data['records']
+
+    # counts origination/ extinction for each stage
+    eag_stageCount = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+    lag_stageCount = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+    # find suitable origination/extinction stage for each record
+    for record in records:
+        eag_stageCount[stageSort(record['eag'])] += 1
+        lag_stageCount[stageSort(record['lag'])] += 1
+
+        
+    # data interpretation
+# -------------------------------------------------------------------------
+    print("origination count: " + str(eag_stageCount))
+    print("extinction count: " + str(lag_stageCount))
+    print("total: " + str(len(records)))
+    print("resulting list: " +str(subList(eag_stageCount,lag_stageCount)))
+
+    # create origination/extinction graph
+    plt.figure(figsize=(20,10))
+    plt.subplot(2,1,1)
+    origination = plt.plot(NAMES, eag_stageCount, marker= 'o',
+                           label='origination')
+    extinction = plt.plot(NAMES, lag_stageCount, marker= 'o',
+                          label ='extinction')
+    plt.ylabel('genera extinct/ originating')
+    plt.title('Origination and Extinction Through the Devonian')
+    plt.legend()
+
+    # create net diversity change graph
+    plt.subplot(2,1,2)
+    plt.plot(NAMES, subList(eag_stageCount,lag_stageCount), marker= 'o')
+    plt.ylabel('origination - extinction')
+    plt.title('Net Diversity Change')
+
+    plt.show()
